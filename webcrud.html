@@ -24,8 +24,31 @@
                     console.log(data)
 
                     //SE ASIGNMA EL DROPDOWN TOGGLE (SI HUBIERA DROPDOWN)
-                    $(".dropdown-toggle").dropdown();
                     $("#menu").html(data);
+
+                    $.ajax({
+                        url: "https://apichampions.azurewebsites.net/api/Equipos", 
+                        method: "get",
+                        contentType: "json",
+                        success: function(result){
+
+                            console.log(result);
+
+                            $.each(result, function(index,element){
+
+                                var menu = $(".dropdown-menu");
+
+                                var lista = $("<li>",{});
+                                var enlace = $("<a>",{"text":element.nombre,"class":"dropdown-item","href":"javascript:muestraEquipo('"+ element.idEquipo +"')"});
+
+                                $(lista).append(enlace);
+                                $(menu).append(lista);
+
+                            })
+                        }
+
+                    });
+
                 });
 
                 $.get("home.html",function(data){
@@ -40,8 +63,80 @@
 
             });
 
-            function saluda() {
-                console.log("Hola")
+            function muestraEquipo(ideq) {
+                
+                //ESTAS DOS LINEAS PRIMERO AL CAMBIAR CONTENIDO SI O SI
+                $("#contenido").html("");
+                $("#contenido").load("muestraequipo.html");
+
+                $.ajax({
+                    url: "https://apichampions.azurewebsites.net/api/Equipos/" + ideq, 
+                    method: "get",
+                    contentType: "json",
+                    success: function(result){
+
+                        $(".tarjetaEquipo .card-header").text(result.nombre);
+                        $(".tarjetaEquipo .card-body a").text("Muestra jugadores").attr("href","javascript:muestraJugadores('"+ideq+"')")
+                        
+                    }
+                        
+                });
+
+
+            }
+
+            function muestraJugadores(ideq) {
+                
+                $("#contenido").html("");
+                $("#contenido").load("muestrajugadores.html");
+
+                $.ajax({
+                    url: "https://apichampions.azurewebsites.net/api/Jugadores/JugadoresEquipo/" + ideq, 
+                    method: "get",
+                    contentType: "json",
+                    success: function(datitos){
+
+                        $.each(datitos, function(index,jugador){
+
+                            var tbody = $(".tablaJugadores tbody");
+
+                            var fila = $("<tr>");
+                            var celdaNom = $("<td>",{"text":jugador.nombre});
+                            var celdaIma = $("<td>");
+                            var imagen = $("<img>",{"src":jugador.imagen,"width":"100px","height":"100px"})
+                            var celdaDet = $("<td>");
+                            var enlace = $("<a>",{"href":"javascript:detallesJugador('"+jugador.idJugador+"')" , "class":"btn btn-info","text":"Detalles"})
+
+                            $(fila).append(celdaNom,celdaIma,celdaDet);
+                            $(celdaIma).append(imagen);
+                            $(celdaDet).append(enlace);
+                            $(tbody).append(fila);
+
+                        })
+                        
+                    }
+                        
+                });
+
+            }
+
+            function detallesJugador(idjug) {
+                
+                $("#contenido").html("");
+                $("#contenido").load("detallesjugador.html");
+
+                $.ajax({
+                    url: "https://apichampions.azurewebsites.net/api/Jugadores/" + idjug, 
+                    method: "get",
+                    contentType: "json",
+                    success: function(data){
+
+                        $(".tarjetaJugador .card-header").text(data.nombre)
+                        
+                    }
+                        
+                });
+
             }
 
         </script>
